@@ -1,0 +1,8 @@
+# Dependências do Sistema de Recomendação Baseado em Conteúdo (FBC)
+# Projeto: Colapse!Tale Deck Builder & Recommender
+# Disciplina: Organização e Disseminação de Dados (ODS)
+
+flask>=3.0.0
+numpy>=1.26.0
+pandas>=2.1.0
+scikit-learn>=1.3.0

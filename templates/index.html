@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colapse!Tale - Recomendador FBC & Deck Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0b10;
+      --bg-panel: #121520;
+      --bg-card: #181c2c;
+      --bg-card-hover: #22273e;
+      --border-color: #2b324d;
+      --accent-red: #ff334b;
+      --accent-cyan: #00e5ff;
+      --accent-purple: #9d4edd;
+      --accent-gold: #ffd166;
+      --text-main: #f0f2f5;
+      --text-muted: #8b95a8;
+      
+      --rarity-comum: #9e9e9e;
+      --rarity-raro: #2196f3;
+      --rarity-epico: #9c27b0;
+      --rarity-lendario: #ff9800;
+      --rarity-suporte: #00e676;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(180deg, #161a29 0%, var(--bg-dark) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      color: var(--accent-red);
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-title span {
+      color: var(--accent-cyan);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      border: 1px solid var(--accent-cyan);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 340px 1fr 380px;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      flex: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* FILTERS & SLIDERS */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .slider-header span.val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #252a3f;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-cyan);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent-red), #c91834);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 51, 75, 0.3);
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #252a3f;
+      box-shadow: none;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .btn-secondary:hover {
+      background: #313752;
+    }
+
+    /* CATALOG CARDS */
+    .catalog-search {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .catalog-search input, .catalog-search select {
+      background: #1b1f30;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .catalog-search input {
+      flex: 1;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.85rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 280px);
+      padding-right: 0.4rem;
+    }
+
+    .card-grid::-webkit-scrollbar, .deck-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .card-grid::-webkit-scrollbar-thumb, .deck-list::-webkit-scrollbar-thumb {
+      background: #283049;
+      border-radius: 3px;
+    }
+
+    .card-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .card-item:hover {
+      background: var(--bg-card-hover);
+      border-color: #424e75;
+      transform: translateY(-2px);
+    }
+
+    .card-item.selected {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge-rarity {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .rarity-comum { background: rgba(158, 158, 158, 0.15); color: var(--rarity-comum); border: 1px solid var(--rarity-comum); }
+    .rarity-raro { background: rgba(33, 150, 243, 0.15); color: var(--rarity-raro); border: 1px solid var(--rarity-raro); }
+    .rarity-épico, .rarity-epico { background: rgba(156, 39, 176, 0.15); color: var(--rarity-epico); border: 1px solid var(--rarity-epico); }
+    .rarity-lendário, .rarity-lendario { background: rgba(255, 152, 0, 0.15); color: var(--rarity-lendario); border: 1px solid var(--rarity-lendario); }
+    .rarity-suporte { background: rgba(0, 230, 118, 0.15); color: var(--rarity-suporte); border: 1px solid var(--rarity-suporte); }
+
+    .card-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.25rem;
+      background: #111420;
+      border-radius: 4px;
+      padding: 0.35rem 0.2rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .stat-val { font-weight: 700; }
+    .stat-lbl { font-size: 0.6rem; color: var(--text-muted); display: block; }
+
+    .card-effect {
+  font-size: 0.72rem;
+  color: #b1b9c9;
+  line-height: 1.25;
+  display: -webkit-box;
+  display: box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+    /* DECK RECOMENDADO */
+    .deck-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 280px);
+      padding-right: 0.4rem;
+    }
+
+    .deck-item {
+      background: #141826;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    .deck-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .similarity-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.1);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .signature-box {
+      background: #101320;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .sig-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="brand-title">
+        COLAPSE!TALE <span>ODS II • FBC</span>
+      </div>
+      <div class="subtitle">Sistema de Recomendação Baseado em Conteúdo & Balanceador de Decks</div>
+    </div>
+    <div id="deck-status" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted);">
+      Cartas Base Selecionadas: <span id="selected-count" style="color: var(--accent-cyan); font-weight: 700;">0</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- COLUNA 1: PREFERÊNCIAS E PERFIL -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>🎮 Diretrizes Táticas</h2>
+        <button class="btn btn-secondary" onclick="resetarControles()">Reset</button>
+      </div>
+
+      <div class="form-group">
+        <div class="slider-header">
+          <span>Prioridade de Ataque (Burst)</span>
+          <span class="val" id="val-atk">0.5</span>
+        </div>
+        <input type="range" id="slider-atk" min="0" max="1" step="0.05" value="0.5" oninput="atualizarSliders()">
+      </div>
+
+      <div class="form-group">
+        <div class="slider-header">
+          <span>Prioridade de Defesa / Armadura</span>
+          <span class="val" id="val-def">0.5</span>
+        </div>
+        <input type="range" id="slider-def" min="0" max="1" step="0.05" value="0.5" oninput="atualizarSliders()">
+      </div>
+
+      <div class="form-group">
+        <div class="slider-header">
+          <span>Prioridade de Controle (Stun/Debuff)</span>
+          <span class="val" id="val-ctrl">0.3</span>
+        </div>
+        <input type="range" id="slider-ctrl" min="0" max="1" step="0.05" value="0.3" oninput="atualizarSliders()">
+      </div>
+
+      <div class="form-group">
+        <div class="slider-header">
+          <span>Prioridade de Suporte & Cura</span>
+          <span class="val" id="val-sup">0.4</span>
+        </div>
+        <input type="range" id="slider-sup" min="0" max="1" step="0.05" value="0.4" oninput="atualizarSliders()">
+      </div>
+
+      <div class="form-group" style="margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;">
+        <div class="slider-header">
+          <span>Diversidade MMR (λ)</span>
+          <span class="val" id="val-lambda">0.70</span>
+        </div>
+        <input type="range" id="slider-lambda" min="0.1" max="1" step="0.05" value="0.70" oninput="atualizarSliders()">
+        <small style="color: var(--text-muted); font-size: 0.7rem; margin-top: 0.2rem;">
+          Valores menores evitam redundância de funções idênticas.
+        </small>
+      </div>
+
+      <button class="btn" onclick="gerarRecomendacao()">
+        ⚡ Montar Deck Balanceado
+      </button>
+
+      <!-- ASSINATURA VETORIAL DO JOGADOR -->
+      <div class="signature-box" id="user-signature">
+        <span style="font-weight: 600; color: var(--accent-gold);">Dimensões Dominantes do Perfil:</span>
+        <div id="sig-content" style="color: var(--text-muted);">
+          Ajuste as preferências ou selecione cartas base para inspecionar.
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUNA 2: CATÁLOGO DE CARTAS -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>🃏 Catálogo de Cartas (33)</h2>
+        <div class="catalog-search">
+          <input type="text" id="search-input" placeholder="Buscar por nome ou efeito..." oninput="filtrarCatalogo()">
+          <select id="filter-rarity" onchange="filtrarCatalogo()">
+            <option value="">Todas</option>
+            <option value="Comum">Comum</option>
+            <option value="Raro">Raro</option>
+            <option value="Épico">Épico</option>
+            <option value="Lendário">Lendário</option>
+            <option value="Suporte">Suporte</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card-grid" id="catalog-container">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </section>
+
+    <!-- COLUNA 3: RESULTADO DA RECOMENDAÇÃO / DECK -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>🛡️ Deck Recomendado</h2>
+        <span id="deck-stats-badge" style="font-size: 0.75rem; color: var(--accent-gold); font-family: 'JetBrains Mono', monospace;">
+          0 / 6 Cartas
+        </span>
+      </div>
+
+      <div class="deck-list" id="deck-container">
+        <div style="text-align: center; color: var(--text-muted); padding: 2rem 1rem; font-size: 0.85rem;">
+          Selecione cartas favoritas como base ou clique em <strong>Montar Deck Balanceado</strong> para calcular as recomendações via Cosseno + MMR.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let todasAsCartas = [];
+    let cartasSelecionadas = new Set();
+
+    async function carregarCatalogo() {
+      try {
+        const res = await fetch('/api/cartas');
+        todasAsCartas = await res.json();
+        renderizarCatalogo(todasAsCartas);
+      } catch (err) {
+        console.error("Erro ao carregar catálogo:", err);
+      }
+    }
+
+    function renderizarCatalogo(cartas) {
+      const container = document.getElementById('catalog-container');
+      container.innerHTML = '';
+
+      cartas.forEach(c => {
+        const cardDiv = document.createElement('div');
+        const isSel = cartasSelecionadas.has(c.nome);
+        cardDiv.className = `card-item ${isSel ? 'selected' : ''}`;
+        cardDiv.onclick = () => alternarSelecaoCarta(c.nome);
+
+        const raridadeClass = `rarity-${c.raridade.toLowerCase()}`;
+
+        cardDiv.innerHTML = `
+          <div class="card-top">
+            <span class="card-name" title="${c.nome}">${c.nome}</span>
+            <span class="badge-rarity ${raridadeClass}">${c.raridade}</span>
+          </div>
+          <div class="card-stats">
+            <div><span class="stat-val" style="color:#4caf50">${c.hp}</span><span class="stat-lbl">HP</span></div>
+            <div><span class="stat-val" style="color:#2196f3">${c.armadura}</span><span class="stat-lbl">ARM</span></div>
+            <div><span class="stat-val" style="color:#f44336">${c.dano}</span><span class="stat-lbl">ATK</span></div>
+          </div>
+          <div class="card-effect" title="${c.efeito}">
+            ${c.efeito}
+          </div>
+        `;
+        container.appendChild(cardDiv);
+      });
+    }
+
+    function alternarSelecaoCarta(nome) {
+      if (cartasSelecionadas.has(nome)) {
+        cartasSelecionadas.delete(nome);
+      } else {
+        if (cartasSelecionadas.size >= 5) {
+          alert("Você pode escolher no máximo 5 cartas como base inicial do deck.");
+          return;
+        }
+        cartasSelecionadas.add(nome);
+      }
+      document.getElementById('selected-count').innerText = cartasSelecionadas.size;
+      filtrarCatalogo();
+      atualizarPerfilInspecao();
+    }
+
+    function filtrarCatalogo() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const r = document.getElementById('filter-rarity').value.toLowerCase();
+
+      const filtradas = todasAsCartas.filter(c => {
+        const matchesQuery = c.nome.toLowerCase().includes(q) || c.efeito.toLowerCase().includes(q);
+        const matchesRarity = !r || c.raridade.toLowerCase() === r;
+        return matchesQuery && matchesRarity;
+      });
+
+      renderizarCatalogo(filtradas);
+    }
+
+    function atualizarSliders() {
+      document.getElementById('val-atk').innerText = document.getElementById('slider-atk').value;
+      document.getElementById('val-def').innerText = document.getElementById('slider-def').value;
+      document.getElementById('val-ctrl').innerText = document.getElementById('slider-ctrl').value;
+      document.getElementById('val-sup').innerText = document.getElementById('slider-sup').value;
+      document.getElementById('val-lambda').innerText = document.getElementById('slider-lambda').value;
+      atualizarPerfilInspecao();
+    }
+
+    function resetarControles() {
+      document.getElementById('slider-atk').value = 0.5;
+      document.getElementById('slider-def').value = 0.5;
+      document.getElementById('slider-ctrl').value = 0.3;
+      document.getElementById('slider-sup').value = 0.4;
+      document.getElementById('slider-lambda').value = 0.70;
+      cartasSelecionadas.clear();
+      document.getElementById('selected-count').innerText = 0;
+      atualizarSliders();
+      filtrarCatalogo();
+    }
+
+    async function atualizarPerfilInspecao() {
+      const payload = {
+        cartas: Array.from(cartasSelecionadas),
+        pesos: Array.from(cartasSelecionadas).map(() => 1.0),
+        arquetipo: {
+          ataque: parseFloat(document.getElementById('slider-atk').value),
+          defesa: parseFloat(document.getElementById('slider-def').value),
+          controle: parseFloat(document.getElementById('slider-ctrl').value),
+          suporte: parseFloat(document.getElementById('slider-sup').value)
+        }
+      };
+
+      try {
+        const res = await fetch('/api/perfil', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const sigDiv = document.getElementById('sig-content');
+          sigDiv.innerHTML = data.top_atributos.map(a => `
+            <div class="sig-row">
+              <span>${a.dimensao}:</span>
+              <span style="color:var(--accent-cyan)">${(a.peso).toFixed(4)}</span>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function gerarRecomendacao() {
+      const payload = {
+        cartas_base: Array.from(cartasSelecionadas),
+        pesos: Array.from(cartasSelecionadas).map(() => 1.0),
+        arquetipo: {
+          ataque: parseFloat(document.getElementById('slider-atk').value),
+          defesa: parseFloat(document.getElementById('slider-def').value),
+          controle: parseFloat(document.getElementById('slider-ctrl').value),
+          suporte: parseFloat(document.getElementById('slider-sup').value)
+        },
+        modo: "deck_balanceado",
+        tamanho_deck: 6,
+        lambda_div: parseFloat(document.getElementById('slider-lambda').value)
+      };
+
+      try {
+        const res = await fetch('/api/recomendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        renderizarDeck(data.deck || []);
+      } catch (err) {
+        console.error("Erro ao recomendar:", err);
+      }
+    }
+
+    function renderizarDeck(deck) {
+      const container = document.getElementById('deck-container');
+      const badge = document.getElementById('deck-stats-badge');
+      badge.innerText = `${deck.length} / 6 Cartas`;
+
+      if (!deck.length) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">Nenhuma combinação gerada.</div>`;
+        return;
+      }
+
+      container.innerHTML = deck.map((c, i) => {
+        const raridadeClass = `rarity-${c.raridade.toLowerCase()}`;
+        const simPct = (c.similaridade * 100).toFixed(1);
+        return `
+          <div class="deck-item">
+            <div class="deck-item-top">
+              <span style="font-weight:700; font-size:0.95rem;">${i+1}. ${c.nome}</span>
+              <div style="display:flex; gap:0.4rem; align-items:center;">
+                <span class="badge-rarity ${raridadeClass}">${c.raridade}</span>
+                <span class="similarity-tag">${simPct}% Afim</span>
+              </div>
+            </div>
+            <div class="card-stats" style="margin: 0.2rem 0;">
+              <div><span class="stat-val" style="color:#4caf50">${c.hp}</span><span class="stat-lbl">HP</span></div>
+              <div><span class="stat-val" style="color:#2196f3">${c.armadura}</span><span class="stat-lbl">ARM</span></div>
+              <div><span class="stat-val" style="color:#f44336">${c.dano}</span><span class="stat-lbl">ATK</span></div>
+            </div>
+            <div style="font-size:0.75rem; color:#b1b9c9; line-height:1.2;">
+              ${c.efeito}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Inicialização
+    window.onload = () => {
+      carregarCatalogo();
+      atualizarPerfilInspecao();
+    };
+  </script>
+</body>
+</html>
