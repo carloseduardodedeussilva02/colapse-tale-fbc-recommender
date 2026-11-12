@@ -31,6 +31,10 @@ def enviar(ws, obj):
     except Exception:
         pass
 
+@app.route("/")
+def index():
+    return send_from_directory(os.path.join(BASE, "templates"), "index.html")
+
 @sock.route("/ws")
 def ws_handler(ws):
     sala, vaga = None, None
