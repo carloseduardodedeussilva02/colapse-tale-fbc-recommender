@@ -108,5 +108,4 @@ def ip_local():
 
 
 if __name__ == "__main__":
-    print(f"\n  Abra no navegador de cada jogador:  http://{ip_local()}:{PORT}\n")
-    app.run(host="0.0.0.0", port=PORT)
+    app.run(host="0.0.0.0", port=5000)
