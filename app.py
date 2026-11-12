@@ -12,7 +12,7 @@ import socket
 import string
 import threading
 
-from flask import Flask, send_from_directory
+from flask import Flask, render_template, send_from_directory
 from flask_sock import Sock
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +34,7 @@ def enviar(ws, obj):
 
 @app.route("/")
 def index():
-    return send_from_directory(BASE, "index.html")
+    return render_template("index.html")
 
 
 @sock.route("/ws")
